@@ -33,31 +33,6 @@ Este proyecto es un sistema de gestión de productos que permite a los usuarios 
 - **JavaScript (ES6+)** - Lógica del cliente
 - **Fetch API** - Comunicación con el backend
 
-## 📁 Estructura del Proyecto
-
-proyecto-web-crud/
-├── backend/
-│ ├── config/
-│ │ └── database.js # Configuración de SQLite
-│ ├── controllers/
-│ │ └── productController.js # Controladores de productos
-│ ├── models/
-│ │ └── Product.js # Modelo de datos
-│ ├── routes/
-│ │ └── productRoutes.js # Rutas de la API
-│ ├── services/
-│ │ └── productService.js # Lógica de negocio
-│ ├── middleware/
-│ │ └── errorHandler.js # Manejo de errores
-│ ├── database.db # Base de datos SQLite
-│ ├── package.json # Dependencias del backend
-│ └── server.js # Servidor principal
-├── frontend/
-│ └── index.html # Interfaz de usuario
-└── README.md # Este archivo
-
-text
-
 ## 🔧 Instalación y Configuración
 
 ### Prerrequisitos
@@ -70,13 +45,9 @@ text
 git clone [url-del-repositorio]
 cd proyecto-web-crud
 
-text
-
 2. **Instalar dependencias del backend**
 cd backend
 npm install
-
-text
 
 3. **La base de datos SQLite se crea automáticamente**
 
@@ -86,14 +57,10 @@ text
 cd backend
 npm run dev
 
-text
-
 **Esperar hasta ver estos mensajes:**
 ✅ Base de datos SQLite conectada y tablas creadas
 🚀 Servidor iniciado en puerto 5000
 📍 API disponible en http://localhost:5000/api
-
-text
 
 ### 2. Abrir el Frontend (DESPUÉS)
 - Doble clic en `frontend/index.html`
@@ -124,8 +91,6 @@ image_url: TEXT, // URL de la imagen
 created_at: DATETIME, // Fecha de creación
 updated_at: DATETIME // Fecha de actualización
 }
-
-text
 
 ## 💡 Uso de la Aplicación
 
@@ -184,31 +149,7 @@ Si `npm run dev` falla:
 - [ ] Reportes y estadísticas
 - [ ] API de exportación
 
-## 👨‍💻 Desarrollo
-
-### Scripts Disponibles
-npm run dev # Iniciar servidor en modo desarrollo
-npm start # Iniciar servidor en modo producción
-
-text
-
-### Estructura de la Base de Datos
-La base de datos SQLite se crea automáticamente con:
-- Tabla `products` con todos los campos necesarios
-- Datos de prueba iniciales (3 productos de ejemplo)
-- Índices automáticos para mejor rendimiento
-
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT.
 
-## 🤝 Contribuciones
-
-Las contribuciones son bienvenidas. Por favor:
-1. Fork el proyecto
-2. Crear una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
-5. Abrir un Pull Request
-
----
