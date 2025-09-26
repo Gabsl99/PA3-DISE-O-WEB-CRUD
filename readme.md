@@ -212,7 +212,3 @@ Las contribuciones son bienvenidas. Por favor:
 5. Abrir un Pull Request
 
 ---
-
-**¡Disfruta usando tu Sistema de Gestión CRUD! 🎉**
-
-Para soporte adicional, revisa la documentación o abre un issue en el repositorio.
