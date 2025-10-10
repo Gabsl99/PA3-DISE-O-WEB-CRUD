@@ -13,7 +13,7 @@ export const initDatabase = async () => {
     try {
         db = new Database(dbPath);
         
-        // Crear tablas
+        // Crear tabla de productos
         db.exec(`
             CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,18 +26,22 @@ export const initDatabase = async () => {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+        `);
 
+        // Crear tabla de usuarios (NUEVA)
+        db.exec(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
                 role TEXT DEFAULT 'user',
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_login DATETIME
             );
         `);
 
-        // Insertar datos de prueba
+        // Insertar datos de prueba de productos
         const insertProduct = db.prepare(`
             INSERT OR IGNORE INTO products (id, name, description, price, category, stock, image_url) 
             VALUES (?, ?, ?, ?, ?, ?, ?)

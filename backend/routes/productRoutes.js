@@ -1,18 +1,23 @@
 import express from 'express';
-import ProductController from '../controllers/ProductController.js';
+import ProductController from '../controllers/productController.js';
+import { authenticateToken, isAdmin } from '../middleware/auth.js';
+import { validateProduct } from '../middleware/validation.js';
 
 const router = express.Router();
-const productController = new ProductController();
 
-// Rutas CRUD básicas
-router.get('/', productController.getAllProducts);
-router.get('/:id', productController.getProductById);
-router.post('/', productController.createProduct);
-router.put('/:id', productController.updateProduct);
-router.delete('/:id', productController.deleteProduct);
+// Rutas públicas (sin autenticación requerida)
+router.get('/', ProductController.getAllProducts);
+router.get('/:id', ProductController.getProductById);
 
-// Rutas adicionales
-router.get('/category/:category', productController.getProductsByCategory);
-router.get('/inventory/low-stock', productController.getLowStockProducts);
+// Rutas protegidas (requieren autenticación)
+// Solo usuarios autenticados pueden crear productos
+router.post('/', authenticateToken, validateProduct, ProductController.createProduct);
+
+// Solo administradores pueden actualizar y eliminar productos
+router.put('/:id', authenticateToken, isAdmin, validateProduct, ProductController.updateProduct);
+router.delete('/:id', authenticateToken, isAdmin, ProductController.deleteProduct);
+
+// Ruta de búsqueda (pública)
+router.get('/search/:term', ProductController.searchProducts);
 
 export default router;

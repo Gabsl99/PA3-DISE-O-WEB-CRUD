@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Tienda - Gestión de Productos</title>
+    <title>Mi Tienda - Sistema de Gestión CRUD Seguro</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,8 @@
         
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
         }
         
@@ -22,10 +23,146 @@
             margin: 0 auto;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             padding: 20px;
         }
-        
+
+        /* Estilos de autenticación */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Estilos para el botón de mostrar contraseña */
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: #666;
+            font-size: 1.2em;
+            user-select: none;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-auth:hover {
+            background: #5568d3;
+        }
+
+        /* Header con usuario */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .btn-logout {
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: white;
+            color: #667eea;
+        }
+
         h1 {
             text-align: center;
             color: #333;
@@ -45,6 +182,36 @@
             padding: 20px;
             background: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Estilos para la imagen del producto */
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f5f5f5;
+        }
+
+        .product-image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3em;
         }
         
         .product-name {
@@ -99,6 +266,7 @@
             cursor: pointer;
             font-size: 0.9em;
             flex: 1;
+            transition: background 0.3s;
         }
         
         .btn-edit:hover {
@@ -114,10 +282,17 @@
             cursor: pointer;
             font-size: 0.9em;
             flex: 1;
+            transition: background 0.3s;
         }
         
         .btn-delete:hover {
             background: #c0392b;
+        }
+
+        .btn-delete:disabled,
+        .btn-edit:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
         }
         
         .loading {
@@ -138,6 +313,15 @@
         
         .success {
             background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .warning {
+            background: #f39c12;
             color: white;
             padding: 15px;
             border-radius: 5px;
@@ -209,14 +393,91 @@
         .btn-cancel:hover {
             background: #7f8c8d;
         }
+
+        .admin-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Estilo para el pequeño texto de ayuda */
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #7f8c8d;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛒 Mi Tienda - Sistema de Gestión CRUD</h1>
+    <!-- Pantalla de Autenticación -->
+    <div id="authScreen" class="auth-container">
+        <h1>🔐 Mi Tienda Segura</h1>
+        
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')">Registrarse</button>
+        </div>
+
+        <!-- Formulario de Login -->
+        <form id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" required>
+                <span class="password-toggle" onclick="togglePassword('loginPassword', this)">👁️</span>
+            </div>
+            <button type="submit" class="btn-auth">Iniciar Sesión</button>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="registerUsername">Nombre de Usuario</label>
+                <input type="text" id="registerUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Contraseña</label>
+                <input type="password" id="registerPassword" required>
+                <span class="password-toggle" onclick="togglePassword('registerPassword', this)">👁️</span>
+                <small>Mínimo 6 caracteres, incluir mayúscula, minúscula y número</small>
+            </div>
+            <button type="submit" class="btn-auth">Registrarse</button>
+        </form>
+
+        <div id="authMessage" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- Aplicación Principal -->
+    <div id="appScreen" class="container hidden">
+        <!-- Header con información de usuario -->
+        <div class="header">
+            <h1>🛒 Mi Tienda - Sistema CRUD Seguro</h1>
+            <div class="user-info">
+                <div class="user-badge">
+                    <span id="usernameDisplay"></span>
+                    <span id="roleDisplay"></span>
+                </div>
+                <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
         
         <!-- Formulario para agregar/editar productos -->
-        <div class="form-section">
+        <div class="form-section" id="formSection">
             <h2 id="formTitle">Agregar Nuevo Producto</h2>
             <form id="productForm">
                 <div class="form-row">
@@ -249,6 +510,7 @@
         <!-- Mensajes -->
         <div id="success" class="success" style="display: none;"></div>
         <div id="error" class="error" style="display: none;"></div>
+        <div id="warning" class="warning" style="display: none;"></div>
         
         <!-- Área de carga -->
         <div id="loading" class="loading">Cargando productos...</div>
@@ -259,12 +521,170 @@
 
     <script>
         const API_URL = 'http://localhost:5000/api';
-        
-        // Cargar productos al iniciar
+        let currentUser = null;
+        let authToken = null;
+
+        // Verificar si hay sesión al cargar
         window.onload = function() {
-            loadProducts();
+            checkAuth();
         };
-        
+
+        // Función para mostrar/ocultar contraseña
+        function togglePassword(inputId, toggleIcon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleIcon.textContent = '🙈'; // Ojo cerrado
+            } else {
+                input.type = 'password';
+                toggleIcon.textContent = '👁️'; // Ojo abierto
+            }
+        }
+
+        // Cambiar entre tabs de login/registro
+        function switchAuthTab(tab) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const tabs = document.querySelectorAll('.auth-tab');
+
+            tabs.forEach(t => t.classList.remove('active'));
+
+            if (tab === 'login') {
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                tabs[0].classList.add('active');
+            } else {
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+                tabs[1].classList.add('active');
+            }
+
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        // Verificar autenticación
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+
+            if (token && user) {
+                authToken = token;
+                currentUser = JSON.parse(user);
+                showApp();
+            } else {
+                showAuth();
+            }
+        }
+
+        // Mostrar pantalla de autenticación
+        function showAuth() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+        }
+
+        // Mostrar aplicación
+        function showApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            document.getElementById('usernameDisplay').textContent = currentUser.username;
+            
+            if (currentUser.role === 'admin') {
+                document.getElementById('roleDisplay').innerHTML = '<span class="admin-badge">ADMIN</span>';
+            }
+
+            loadProducts();
+        }
+
+        // Manejo de login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    authToken = data.data.token;
+                    currentUser = data.data.user;
+
+                    showApp();
+                } else {
+                    showAuthMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showAuthMessage('Error de conexión. Verifica que el servidor esté funcionando.', 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        // Manejo de registro
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    authToken = data.data.token;
+                    currentUser = data.data.user;
+
+                    showApp();
+                } else {
+                    showAuthMessage(data.message, 'error');
+                }
+            } catch (error) {
+                showAuthMessage('Error de conexión. Verifica que el servidor esté funcionando.', 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        // Mostrar mensajes de autenticación
+        function showAuthMessage(message, type) {
+            const msgDiv = document.getElementById('authMessage');
+            msgDiv.innerHTML = `<div class="${type}" style="padding: 15px; border-radius: 5px; margin-top: 15px;">${message}</div>`;
+            
+            setTimeout(() => {
+                msgDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            authToken = null;
+            currentUser = null;
+            showAuth();
+        }
+
         // Función para cargar productos
         async function loadProducts() {
             try {
@@ -287,46 +707,80 @@
             }
         }
         
-        // Mostrar productos en la página
+        // Mostrar productos en la página CON IMÁGENES
         function displayProducts(products) {
             const productsDiv = document.getElementById('products');
+            const isAdmin = currentUser && currentUser.role === 'admin';
             
             if (!products || products.length === 0) {
                 productsDiv.innerHTML = '<p style="text-align: center; color: #666; padding: 50px;">No hay productos disponibles</p>';
                 return;
             }
             
-            productsDiv.innerHTML = products.map(product => `
-                <div class="product-card">
-                    <div class="product-name">${product.name}</div>
-                    <div class="product-price">S/ ${parseFloat(product.price).toFixed(2)}</div>
-                    <div class="product-category">${product.category}</div>
-                    <div class="product-stock">Stock: ${product.stock} unidades</div>
-                    <div class="product-description">${product.description || 'Sin descripción'}</div>
-                    <div class="product-actions">
-                        <button onclick="editProduct(${product.id})" class="btn-edit">✏️ Editar</button>
-                        <button onclick="deleteProduct(${product.id})" class="btn-delete">🗑️ Eliminar</button>
+            productsDiv.innerHTML = products.map(product => {
+                // Mostrar imagen si existe, si no mostrar placeholder
+                const imageHtml = product.image_url && product.image_url.trim() !== '' 
+                    ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" class="product-image" onerror="this.onerror=null; this.src=''; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <div class="product-image-placeholder" style="display: none;">📦</div>`
+                    : `<div class="product-image-placeholder">📦</div>`;
+
+                return `
+                    <div class="product-card">
+                        ${imageHtml}
+                        <div class="product-name">${escapeHtml(product.name)}</div>
+                        <div class="product-price">S/ ${parseFloat(product.price).toFixed(2)}</div>
+                        <div class="product-category">${escapeHtml(product.category)}</div>
+                        <div class="product-stock">Stock: ${product.stock} unidades</div>
+                        <div class="product-description">${escapeHtml(product.description || 'Sin descripción')}</div>
+                        <div class="product-actions">
+                            <button onclick="editProduct(${product.id})" class="btn-edit" ${!isAdmin ? 'disabled title="Solo administradores"' : ''}>✏️ Editar</button>
+                            <button onclick="deleteProduct(${product.id})" class="btn-delete" ${!isAdmin ? 'disabled title="Solo administradores"' : ''}>🗑️ Eliminar</button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+
+            if (!isAdmin) {
+                showWarning('Solo los administradores pueden editar y eliminar productos.');
+            }
+        }
+
+        // Escapar HTML para prevenir XSS
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
         }
         
         // Función para eliminar producto
         async function deleteProduct(productId) {
+            if (currentUser.role !== 'admin') {
+                showError('Solo los administradores pueden eliminar productos');
+                return;
+            }
+
             if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar este producto?\n\nEsta acción no se puede deshacer.')) {
                 return;
             }
             
             try {
                 const response = await fetch(`${API_URL}/products/${productId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
                     showSuccess('✅ ¡Producto eliminado exitosamente!');
-                    loadProducts(); // Recargar la lista
+                    loadProducts();
                 } else {
                     showError('❌ Error al eliminar producto: ' + data.message);
                 }
@@ -338,8 +792,12 @@
         
         // Función para editar producto
         async function editProduct(productId) {
+            if (currentUser.role !== 'admin') {
+                showError('Solo los administradores pueden editar productos');
+                return;
+            }
+
             try {
-                // Buscar el producto actual
                 const response = await fetch(`${API_URL}/products/${productId}`);
                 const data = await response.json();
                 
@@ -350,7 +808,6 @@
                 
                 const product = data.data.product;
                 
-                // Llenar el formulario con los datos actuales
                 document.getElementById('name').value = product.name;
                 document.getElementById('price').value = product.price;
                 document.getElementById('category').value = product.category;
@@ -358,13 +815,11 @@
                 document.getElementById('image_url').value = product.image_url || '';
                 document.getElementById('description').value = product.description || '';
                 
-                // Cambiar el formulario para modo edición
                 document.getElementById('formTitle').textContent = '✏️ Editar Producto';
                 document.getElementById('submitBtn').textContent = 'Actualizar Producto';
                 document.getElementById('submitBtn').setAttribute('data-editing', productId);
                 document.getElementById('cancelBtn').style.display = 'inline-block';
                 
-                // Scroll al formulario
                 document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
                 
             } catch (error) {
@@ -375,54 +830,55 @@
         
         // Función para cancelar edición
         function cancelEdit() {
-            // Limpiar formulario
             document.getElementById('productForm').reset();
-            
-            // Resetear botones y título
             document.getElementById('formTitle').textContent = 'Agregar Nuevo Producto';
             document.getElementById('submitBtn').textContent = 'Agregar Producto';
             document.getElementById('submitBtn').removeAttribute('data-editing');
             document.getElementById('cancelBtn').style.display = 'none';
-            
-            // Limpiar mensajes
             hideMessages();
         }
         
-        // Mostrar mensajes de error
+        // Mostrar mensajes
         function showError(message) {
             const errorDiv = document.getElementById('error');
             const successDiv = document.getElementById('success');
+            const warningDiv = document.getElementById('warning');
             successDiv.style.display = 'none';
+            warningDiv.style.display = 'none';
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
-            
-            // Auto-ocultar después de 5 segundos
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
         }
         
-        // Mostrar mensajes de éxito
         function showSuccess(message) {
             const successDiv = document.getElementById('success');
             const errorDiv = document.getElementById('error');
+            const warningDiv = document.getElementById('warning');
             errorDiv.style.display = 'none';
+            warningDiv.style.display = 'none';
             successDiv.textContent = message;
             successDiv.style.display = 'block';
-            
-            // Auto-ocultar después de 3 segundos
-            setTimeout(() => {
-                successDiv.style.display = 'none';
-            }, 3000);
+            setTimeout(() => successDiv.style.display = 'none', 3000);
+        }
+
+        function showWarning(message) {
+            const warningDiv = document.getElementById('warning');
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            warningDiv.textContent = message;
+            warningDiv.style.display = 'block';
+            setTimeout(() => warningDiv.style.display = 'none', 5000);
         }
         
-        // Ocultar todos los mensajes
         function hideMessages() {
             document.getElementById('error').style.display = 'none';
             document.getElementById('success').style.display = 'none';
+            document.getElementById('warning').style.display = 'none';
         }
         
-        // Manejar envío del formulario
+        // Manejo del formulario de productos
         document.getElementById('productForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -437,7 +893,6 @@
                 description: document.getElementById('description').value.trim() || ''
             };
             
-            // Validaciones básicas
             if (!productData.name) {
                 showError('❌ El nombre del producto es obligatorio');
                 return;
@@ -450,23 +905,21 @@
             
             try {
                 let response;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                };
                 
                 if (isEditing) {
-                    // Actualizar producto existente
                     response = await fetch(`${API_URL}/products/${isEditing}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: headers,
                         body: JSON.stringify(productData)
                     });
                 } else {
-                    // Crear nuevo producto
                     response = await fetch(`${API_URL}/products`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: headers,
                         body: JSON.stringify(productData)
                     });
                 }
@@ -474,24 +927,18 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Limpiar formulario
                     document.getElementById('productForm').reset();
-                    
-                    // Resetear formulario al modo agregar
                     cancelEdit();
-                    
-                    // Recargar productos
                     loadProducts();
                     showSuccess(isEditing ? '✅ ¡Producto actualizado exitosamente!' : '✅ ¡Producto agregado exitosamente!');
                 } else {
-                    showError('❌ Error al ' + (isEditing ? 'actualizar' : 'agregar') + ' producto: ' + data.message);
+                    showError('❌ ' + data.message);
                 }
             } catch (error) {
-                showError('❌ Error de conexión al ' + (isEditing ? 'actualizar' : 'agregar') + ' producto');
+                showError('❌ Error de conexión');
                 console.error('Error:', error);
             }
         });
     </script>
 </body>
 </html>
-

@@ -1,55 +1,53 @@
-import { errorResponse } from '../utils/response.js';
+// Middleware de manejo de errores global
+export const errorHandler = (err, req, res, next) => {
+    console.error('Error:', err.stack);
 
-// Middleware global para manejo de errores
-export const errorHandler = (error, req, res, next) => {
-    console.error('🔥 Error capturado por middleware:', {
-        message: error.message,
-        stack: error.stack,
-        url: req.url,
-        method: req.method,
-        timestamp: new Date().toISOString()
+    // Error de validación
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({
+            success: false,
+            message: 'Error de validación',
+            errors: Object.values(err.errors).map(e => e.message)
+        });
+    }
+
+    // Error de JWT
+    if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token inválido'
+        });
+    }
+
+    // Error de token expirado
+    if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token expirado'
+        });
+    }
+
+    // Error de SQLite
+    if (err.code === 'SQLITE_CONSTRAINT') {
+        return res.status(400).json({
+            success: false,
+            message: 'Error de restricción en la base de datos',
+            error: err.message
+        });
+    }
+
+    // Error genérico
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || 'Error interno del servidor',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
     });
-
-    // Errores de validación
-    if (error.message.includes('Datos inválidos') || error.message.includes('Filtros inválidos')) {
-        return errorResponse(res, error.message, error, 400);
-    }
-
-    // Errores de no encontrado
-    if (error.message.includes('no encontrado')) {
-        return errorResponse(res, error.message, error, 404);
-    }
-
-    // Error de base de datos
-    if (error.code) {
-        let message = 'Error de base de datos';
-        let statusCode = 500;
-
-        switch (error.code) {
-            case '23505': // Violación de constraint único
-                message = 'El recurso ya existe';
-                statusCode = 409;
-                break;
-            case '23503': // Violación de foreign key
-                message = 'Referencia inválida';
-                statusCode = 400;
-                break;
-            case '23514': // Violación de check constraint
-                message = 'Datos inválidos para la base de datos';
-                statusCode = 400;
-                break;
-            default:
-                message = 'Error interno del servidor';
-        }
-
-        return errorResponse(res, message, error, statusCode);
-    }
-
-    // Error genérico del servidor
-    return errorResponse(res, 'Error interno del servidor', error, 500);
 };
 
-// Middleware para rutas no encontradas
+// Middleware para manejar rutas no encontradas
 export const notFoundHandler = (req, res) => {
-    return errorResponse(res, `Ruta ${req.originalUrl} no encontrada`, null, 404);
+    res.status(404).json({
+        success: false,
+        message: `Ruta ${req.originalUrl} no encontrada`
+    });
 };

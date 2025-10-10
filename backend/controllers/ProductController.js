@@ -1,116 +1,213 @@
-import ProductService from '../services/ProductService.js';
-import { successResponse, errorResponse } from '../utils/response.js';
+import Product from '../models/Product.js';
 
 class ProductController {
-    constructor() {
-        this.productService = new ProductService();
-    }
-
     // Obtener todos los productos
-    getAllProducts = async (req, res, next) => {
+    static async getAllProducts(req, res) {
         try {
-            const filters = {
-                category: req.query.category,
-                minPrice: req.query.minPrice ? parseFloat(req.query.minPrice) : undefined,
-                maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice) : undefined,
-                search: req.query.search
-            };
+            const { category, minPrice, maxPrice } = req.query;
+            const filters = {};
 
-            const products = await this.productService.getAllProducts(filters);
-            
-            return successResponse(res, 'Productos obtenidos exitosamente', {
-                products,
-                total: products.length,
-                filters: Object.keys(filters).reduce((acc, key) => {
-                    if (filters[key] !== undefined) acc[key] = filters[key];
-                    return acc;
-                }, {})
+            if (category) filters.category = category;
+            if (minPrice) filters.minPrice = parseFloat(minPrice);
+            if (maxPrice) filters.maxPrice = parseFloat(maxPrice);
+
+            const products = await Product.findAll(filters);
+
+            res.json({
+                success: true,
+                message: 'Productos obtenidos exitosamente',
+                data: {
+                    products,
+                    total: products.length,
+                    filters
+                }
             });
         } catch (error) {
-            next(error);
+            console.error('Error al obtener productos:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al obtener productos',
+                error: error.message
+            });
         }
-    };
+    }
 
     // Obtener producto por ID
-    getProductById = async (req, res, next) => {
+    static async getProductById(req, res) {
         try {
             const { id } = req.params;
-            const product = await this.productService.getProductById(parseInt(id));
-            
-            return successResponse(res, 'Producto obtenido exitosamente', { product });
+            const product = await Product.findById(id);
+
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Producto obtenido exitosamente',
+                data: { product }
+            });
         } catch (error) {
-            next(error);
+            console.error('Error al obtener producto:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al obtener producto',
+                error: error.message
+            });
         }
-    };
+    }
 
     // Crear nuevo producto
-    createProduct = async (req, res, next) => {
+    static async createProduct(req, res) {
         try {
-            const productData = req.body;
-            const newProduct = await this.productService.createProduct(productData);
-            
-            return successResponse(res, 'Producto creado exitosamente', { product: newProduct }, 201);
+            const { name, description, price, category, stock, image_url } = req.body;
+
+            // Validar datos requeridos
+            if (!name || !price) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Nombre y precio son campos requeridos'
+                });
+            }
+
+            const productData = {
+                name: name.trim(),
+                description: description ? description.trim() : null,
+                price: parseFloat(price),
+                category: category ? category.trim() : null,
+                stock: stock ? parseInt(stock) : 0,
+                image_url: image_url ? image_url.trim() : null
+            };
+
+            const newProduct = await Product.create(productData);
+
+            res.status(201).json({
+                success: true,
+                message: 'Producto creado exitosamente',
+                data: { product: newProduct }
+            });
         } catch (error) {
-            next(error);
+            console.error('Error al crear producto:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al crear producto',
+                error: error.message
+            });
         }
-    };
+    }
 
     // Actualizar producto
-    updateProduct = async (req, res, next) => {
+    static async updateProduct(req, res) {
         try {
             const { id } = req.params;
             const updateData = req.body;
-            
-            const updatedProduct = await this.productService.updateProduct(parseInt(id), updateData);
-            
-            return successResponse(res, 'Producto actualizado exitosamente', { product: updatedProduct });
+
+            const product = await Product.findById(id);
+
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            // Sanitizar datos de actualización
+            if (updateData.name) updateData.name = updateData.name.trim();
+            if (updateData.description) updateData.description = updateData.description.trim();
+            if (updateData.category) updateData.category = updateData.category.trim();
+            if (updateData.image_url) updateData.image_url = updateData.image_url.trim();
+            if (updateData.price) updateData.price = parseFloat(updateData.price);
+            if (updateData.stock !== undefined) updateData.stock = parseInt(updateData.stock);
+
+            const updatedProduct = await product.update(updateData);
+
+            res.json({
+                success: true,
+                message: 'Producto actualizado exitosamente',
+                data: { product: updatedProduct }
+            });
         } catch (error) {
-            next(error);
+            console.error('Error al actualizar producto:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al actualizar producto',
+                error: error.message
+            });
         }
-    };
+    }
 
     // Eliminar producto
-    deleteProduct = async (req, res, next) => {
+    static async deleteProduct(req, res) {
         try {
             const { id } = req.params;
-            const result = await this.productService.deleteProduct(parseInt(id));
-            
-            return successResponse(res, result.message, null, 200);
-        } catch (error) {
-            next(error);
-        }
-    };
 
-    // Métodos adicionales
-    getProductsByCategory = async (req, res, next) => {
+            const product = await Product.findById(id);
+
+            if (!product) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Producto no encontrado'
+                });
+            }
+
+            const deleted = await product.delete();
+
+            if (deleted) {
+                res.json({
+                    success: true,
+                    message: 'Producto eliminado exitosamente'
+                });
+            } else {
+                res.status(500).json({
+                    success: false,
+                    message: 'Error al eliminar producto'
+                });
+            }
+        } catch (error) {
+            console.error('Error al eliminar producto:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al eliminar producto',
+                error: error.message
+            });
+        }
+    }
+
+    // Buscar productos por nombre
+    static async searchProducts(req, res) {
         try {
-            const { category } = req.params;
-            const products = await this.productService.getProductsByCategory(category);
-            
-            return successResponse(res, `Productos de la categoría ${category}`, { 
-                products, 
-                category, 
-                total: products.length 
+            const { term } = req.params;
+
+            if (!term || term.trim().length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El término de búsqueda debe tener al menos 2 caracteres'
+                });
+            }
+
+            const products = await Product.searchByName(term);
+
+            res.json({
+                success: true,
+                message: 'Búsqueda completada',
+                data: {
+                    products,
+                    total: products.length,
+                    searchTerm: term
+                }
             });
         } catch (error) {
-            next(error);
-        }
-    };
-
-    getLowStockProducts = async (req, res, next) => {
-        try {
-            const threshold = req.query.threshold ? parseInt(req.query.threshold) : 5;
-            const products = await this.productService.getLowStockProducts(threshold);
-            
-            return successResponse(res, 'Productos con stock bajo', { 
-                products, 
-                threshold,
-                total: products.length 
+            console.error('Error al buscar productos:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al buscar productos',
+                error: error.message
             });
-        } catch (error) {
-            next(error);
         }
-    };
+    }
 }
 
 export default ProductController;
